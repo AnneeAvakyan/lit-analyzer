@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS relationships;
+DROP TABLE IF EXISTS mentions;
+DROP TABLE IF EXISTS character_aliases;
+DROP TABLE IF EXISTS characters;
+DROP TABLE IF EXISTS chapters;
+DROP TABLE IF EXISTS books;
