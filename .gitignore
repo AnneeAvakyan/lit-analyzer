@@ -6,7 +6,8 @@
 
 # Ignore everything
 .env
-
+.idea
+.DS_Store
 *.jpg
 *.png
 
