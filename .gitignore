@@ -1,27 +1,18 @@
-# Allowlisting gitignore template for GO projects prevents us
-# from adding various unwanted local files, such as generated
-# files, developer configurations or IDE-specific files etc.
-#
-# Recommended: Go.AllowList.gitignore
-
-# Ignore everything
-.env
-.idea
+# OS
 .DS_Store
-*.jpg
-*.png
 
-# But not these files...
-!/.gitignore
+# Env / secrets
+.env
 
-!*.go
-!go.sum
-!go.mod
+# IDE
+.idea/
+.vscode/
 
-!README.md
-!LICENSE
+# Go
+*.exe
+*.test
+*.out
+vendor/
 
-# !Makefile
-
-# ...even if they are in subdirectories
-!*/
+# Logs
+*.log
