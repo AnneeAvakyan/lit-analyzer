@@ -1,0 +1,60 @@
+package postgres
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/AnneeAvakyan/litanalyzer/internal/domain/entities"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type PostgresChapterRepository struct {
+	pool *pgxpool.Pool
+}
+
+func NewPostgresChapterRepository(pool *pgxpool.Pool) *PostgresChapterRepository {
+	return &PostgresChapterRepository{pool: pool}
+}
+
+func (r *PostgresChapterRepository) CreateBatch(ctx context.Context, chapters []entities.Chapter) ([]int, error) {
+	if len(chapters) == 0 {
+		return nil, nil // нечего вставлять
+	}
+
+	valueStrings := make([]string, 0, len(chapters))
+	args := make([]interface{}, 0, len(chapters)*3)
+
+	argIdx := 1
+	for _, ch := range chapters {
+		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d)", argIdx, argIdx+1, argIdx+2))
+		args = append(args, ch.BookID, ch.Index, ch.Text)
+		argIdx += 3
+	}
+
+	query := fmt.Sprintf(
+		"INSERT INTO chapters (book_id, index, text) VALUES %s RETURNING id",
+		strings.Join(valueStrings, ", "),
+	)
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("insert chapters batch: %w", err)
+	}
+	defer rows.Close()
+
+	var ids []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("scan chapter id: %w", err)
+		}
+		ids = append(ids, id)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return ids, nil
+}
