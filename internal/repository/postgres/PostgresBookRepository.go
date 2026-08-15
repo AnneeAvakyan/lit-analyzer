@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/AnneeAvakyan/litanalyzer/internal/domain/entities"
-	"github.com/AnneeAvakyan/litanalyzer/internal/domain/repository"
+	"github.com/AnneeAvakyan/litanalyzer/internal/repository"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
