@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/AnneeAvakyan/litanalyzer/internal/domain/entities"
+	"github.com/AnneeAvakyan/litanalyzer/internal/domain/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -57,4 +58,44 @@ func (r *PostgresChapterRepository) CreateBatch(ctx context.Context, chapters []
 	}
 
 	return ids, nil
+}
+
+func (r *PostgresChapterRepository) ListByBookID(ctx context.Context, id int) ([]entities.Chapter, error) {
+	query := `SELECT id, book_id, index, text FROM chapters WHERE book_id = $1 ORDER BY index;`
+
+	rows, err := r.pool.Query(ctx, query, id)
+	if err != nil {
+		return nil, fmt.Errorf("select chapters by book_id: %w", err)
+	}
+
+	defer rows.Close()
+	var chapters []entities.Chapter
+	for rows.Next() {
+		var chapter entities.Chapter
+		if err := rows.Scan(&chapter.ID,
+			&chapter.BookID, &chapter.Index, &chapter.Text); err != nil {
+			return nil, fmt.Errorf("scan chapters by book_id: %w", err)
+		}
+
+		chapters = append(chapters, chapter)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return chapters, nil
+}
+
+func (r *PostgresChapterRepository) Delete(ctx context.Context, id int) error {
+	query := `DELETE FROM chapters WHERE id = $1;`
+	tag, err := r.pool.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("delete chapters: %w", err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return repository.ErrNotFound
+	}
+
+	return nil
 }
