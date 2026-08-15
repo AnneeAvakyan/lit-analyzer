@@ -1,7 +1,7 @@
 package entities
 
-type CharactersAlias struct {
+type CharacterAlias struct {
 	ID          int    `json:"id"`
-	CharacterID int    `json:"characterID"`
+	CharacterID int    `json:"character_id"`
 	Alias       string `json:"alias"`
 }

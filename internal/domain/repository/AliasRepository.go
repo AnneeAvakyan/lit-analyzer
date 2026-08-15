@@ -7,7 +7,7 @@ import (
 )
 
 type AliasRepository interface {
-	Create(ctx context.Context, alias *entities.CharactersAlias) (int, error)
-	ListByCharacterID(ctx context.Context, id int) ([]entities.CharactersAlias, error)
+	Create(ctx context.Context, alias *entities.CharacterAlias) (int, error)
+	ListByCharacterID(ctx context.Context, id int) ([]entities.CharacterAlias, error)
 	Delete(ctx context.Context, id int) error
 }
