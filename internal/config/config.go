@@ -19,7 +19,7 @@ func Load() Config {
 		DBHost:     getEnv("DB_HOST", "localhost"),
 		DBPort:     getEnv("DB_PORT", "5432"),
 		DBUser:     getEnv("DB_USER", "litanalyzer"),
-		DBPassword: getEnv("DB_PASSWORD", ""),
+		DBPassword: getEnv("DB_PASSWORD", "litanalyzer"),
 		DBName:     getEnv("DB_NAME", "litanalyzer_db"),
 		HTTPPort:   getEnv("HTTP_PORT", "8080"),
 	}
