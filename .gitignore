@@ -3,6 +3,7 @@
 
 # Env / secrets
 .env
+storage/
 
 # IDE
 .idea/
