@@ -57,3 +57,27 @@ func (uc *BookUsecase) CreateBook(ctx context.Context, title, author string, fil
 
 	return book, nil
 }
+
+func (uc *BookUsecase) GetByID(ctx context.Context, id int) (*entities.Book, error) {
+	book, err := uc.bookRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get book: %w", err)
+	}
+	return book, nil
+}
+
+func (uc *BookUsecase) UpdateBook(ctx context.Context, book *entities.Book) error {
+	err := uc.bookRepo.UpdateStatus(ctx, book)
+	if err != nil {
+		return fmt.Errorf("update book: %w", err)
+	}
+	return nil
+}
+
+func (uc *BookUsecase) DeleteBook(ctx context.Context, id int) error {
+	err := uc.bookRepo.Delete(ctx, id)
+	if err != nil {
+		return fmt.Errorf("delete book: %w", err)
+	}
+	return nil
+}

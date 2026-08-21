@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/AnneeAvakyan/litanalyzer/internal/usecase"
 )
@@ -43,4 +44,21 @@ func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(book)
+}
+
+func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		http.Error(w, "invalid id: "+err.Error(), http.StatusBadRequest)
+	}
+	book, err := h.bookUsecase.GetByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(book)
+}
+
+func (h *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
+	
 }
