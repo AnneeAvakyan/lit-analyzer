@@ -66,6 +66,8 @@ func main() {
 	r.Post("/books", bookHandler.CreateBook)
 
 	r.Patch("/books/{id}", bookHandler.UpdateBook)
+
+	r.Delete("/books/{id}", bookHandler.DeleteBook)
 	log.Printf("starting server on :%s", cfg.HTTPPort)
 	if err := http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {
 		log.Fatalf("server failed: %v", err)
