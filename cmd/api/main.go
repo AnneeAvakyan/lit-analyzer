@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/AnneeAvakyan/litanalyzer/internal/handler"
+	"github.com/AnneeAvakyan/litanalyzer/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -44,6 +46,12 @@ func main() {
 	_ = aliasRepo
 	_ = relationshipRepo
 
+	// usecases
+	bookUsecase := usecase.NewBookUsecase(bookRepo, "storage/books")
+
+	// handlers
+	bookHandler := handler.NewBookHandler(bookUsecase)
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -53,6 +61,11 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	r.Get("/books/{id}", bookHandler.GetBookByID)
+
+	r.Post("/books", bookHandler.CreateBook)
+
+	r.Patch("/books/{id}", bookHandler.UpdateBook)
 	log.Printf("starting server on :%s", cfg.HTTPPort)
 	if err := http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {
 		log.Fatalf("server failed: %v", err)

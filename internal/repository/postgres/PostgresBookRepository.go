@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/AnneeAvakyan/litanalyzer/internal/domain/entities"
-	"github.com/AnneeAvakyan/litanalyzer/internal/repository"
+	"github.com/AnneeAvakyan/litanalyzer/internal/domain/repository"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -23,7 +23,7 @@ func (r *PostgresBookRepository) Create(ctx context.Context, book *entities.Book
 	query := `
 	INSERT INTO books (title, author, status, raw_text_path, created_at)
 	VALUES ($1, $2, $3, $4, now())
-	RETURNING id;
+	RETURNING id, created_at;
 	`
 
 	var id int
@@ -32,7 +32,7 @@ func (r *PostgresBookRepository) Create(ctx context.Context, book *entities.Book
 		book.Author,
 		book.Status,
 		book.RawTextPath,
-	).Scan(&id)
+	).Scan(&id, &book.CreatedAt)
 	if err != nil {
 		return 0, fmt.Errorf("insert book: %w", err)
 	}
