@@ -61,10 +61,11 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
-	r.Get("books/{id}", bookHandler.GetBookByID)
+	r.Get("/books/{id}", bookHandler.GetBookByID)
 
 	r.Post("/books", bookHandler.CreateBook)
 
+	r.Patch("/books/{id}", bookHandler.UpdateBook)
 	log.Printf("starting server on :%s", cfg.HTTPPort)
 	if err := http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {
 		log.Fatalf("server failed: %v", err)

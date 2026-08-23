@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/AnneeAvakyan/litanalyzer/internal/domain/entities"
 	"github.com/AnneeAvakyan/litanalyzer/internal/domain/repository"
 	"github.com/AnneeAvakyan/litanalyzer/internal/usecase"
 	"github.com/go-chi/chi/v5"
@@ -70,5 +71,52 @@ func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid id: "+err.Error(), http.StatusBadRequest)
+		return
+	}
 
+	type updateStatusRequest struct {
+		Status string `json:"status"`
+	}
+
+	var req updateStatusRequest
+
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	updatedBook := &entities.Book{ID: id, Status: req.Status}
+	err = h.bookUsecase.UpdateBook(r.Context(), updatedBook)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updatedBook)
+}
+
+func (h *BookHandler) DeleteBook(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid id: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.bookUsecase.DeleteBook(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
