@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/AnneeAvakyan/litanalyzer/internal/domain/entities"
-	"github.com/AnneeAvakyan/litanalyzer/internal/repository"
+	"github.com/AnneeAvakyan/litanalyzer/internal/domain/repository"
 	"github.com/google/uuid"
 )
 

@@ -61,6 +61,8 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	r.Get("books/{id}", bookHandler.GetBookByID)
+
 	r.Post("/books", bookHandler.CreateBook)
 
 	log.Printf("starting server on :%s", cfg.HTTPPort)
