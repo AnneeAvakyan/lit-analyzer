@@ -26,6 +26,18 @@ func isStopWord(word string) bool {
 	return stopWords[strings.ToLower(word)]
 }
 
+func ExtractCandidatesWithFrequency(sentences []string) map[string]int {
+	freq := make(map[string]int)
+
+	for _, sentence := range sentences {
+		candidates := extractCandidatesFromSentence(sentence)
+		for _, candidate := range candidates {
+			freq[candidate]++
+		}
+	}
+	return freq
+}
+
 func extractCandidatesFromSentence(sentence string) []string {
 	candidates := []string{}
 	currentSeries := []string{}

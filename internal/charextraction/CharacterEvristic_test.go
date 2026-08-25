@@ -5,6 +5,44 @@ import (
 	"testing"
 )
 
+func TestExtractCandidatesWithFrequency(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []string
+		expected map[string]int
+	}{
+		{
+			name:  "two sentences, freq = one & two",
+			input: []string{"Юная Наташа полюбила Андрея.", "Князя Андрея это мало заботило."},
+			expected: map[string]int{
+				"Наташа": 1,
+				"Андрея": 2,
+			},
+		},
+		{
+			name:  "two sentences, freq = one & one",
+			input: []string{"Юная Наташа полюбила Андрея.", "Он отвечал ей взаимностью."},
+			expected: map[string]int{
+				"Наташа": 1,
+				"Андрея": 1,
+			},
+		},
+		{
+			name:     "two sentences, no names",
+			input:    []string{"Она полюбила его.", "Полюбила на всю жизнь."},
+			expected: map[string]int{},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual := ExtractCandidatesWithFrequency(test.input)
+			if !reflect.DeepEqual(actual, test.expected) {
+				t.Errorf("Expected: %v, Actual: %v", test.expected, actual)
+			}
+		})
+	}
+}
+
 func TestExtractCandidatesFromSentence(t *testing.T) {
 	tests := []struct {
 		name     string
