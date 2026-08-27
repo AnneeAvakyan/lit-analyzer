@@ -43,6 +43,47 @@ func TestExtractCandidatesWithFrequency(t *testing.T) {
 	}
 }
 
+func TestFilterByFrequency(t *testing.T) {
+	tests := []struct {
+		name     string
+		freq     map[string]int
+		minCount int
+		expected map[string]int
+	}{
+		{
+			name: "remove less than 2",
+			freq: map[string]int{
+				"Наташа": 2,
+				"Андрей": 1,
+			},
+			minCount: 2,
+			expected: map[string]int{
+				"Наташа": 2,
+			},
+		},
+		{
+			name: "no remove",
+			freq: map[string]int{
+				"Наташа": 2,
+				"Андрей": 1,
+			},
+			minCount: 1,
+			expected: map[string]int{
+				"Наташа": 2,
+				"Андрей": 1,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual := FilterByFrequency(test.freq, test.minCount)
+			if !reflect.DeepEqual(actual, test.expected) {
+				t.Errorf("Expected: %v, Actual: %v", test.expected, actual)
+			}
+		})
+	}
+}
+
 func TestExtractCandidatesFromSentence(t *testing.T) {
 	tests := []struct {
 		name     string

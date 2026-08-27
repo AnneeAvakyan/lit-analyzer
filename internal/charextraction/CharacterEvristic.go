@@ -26,6 +26,8 @@ func isStopWord(word string) bool {
 	return stopWords[strings.ToLower(word)]
 }
 
+// не учитывает падежи русского языка . Планируется объединение через
+// ручное слияние алиасов (POST /characters/merge) на более позднем этапе.
 func ExtractCandidatesWithFrequency(sentences []string) map[string]int {
 	freq := make(map[string]int)
 
@@ -36,6 +38,16 @@ func ExtractCandidatesWithFrequency(sentences []string) map[string]int {
 		}
 	}
 	return freq
+}
+
+func FilterByFrequency(freq map[string]int, minCount int) map[string]int {
+	result := make(map[string]int)
+	for key, value := range freq {
+		if value >= minCount {
+			result[key] = value
+		}
+	}
+	return result
 }
 
 func extractCandidatesFromSentence(sentence string) []string {
