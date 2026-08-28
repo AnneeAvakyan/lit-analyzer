@@ -11,3 +11,10 @@ type Book struct {
 	RawTextPath string    `json:"rawTextPath"`
 	CreatedAt   time.Time `json:"createdAt"`
 }
+
+const (
+	BookStatusPending    = "pending"
+	BookStatusProcessing = "processing"
+	BookStatusDone       = "done"
+	BookStatusFailed     = "failed"
+)

@@ -12,6 +12,10 @@ var stopWords = map[string]bool{
 	"господи":   true,
 	"отечество": true,
 	"родина":    true,
+	"он":        true,
+	"она":       true,
+	"оно":       true,
+	"они":       true,
 }
 
 func isCapitalized(word string) bool {
