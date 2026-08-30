@@ -18,41 +18,37 @@ func NewPostgresAliasRepository(pool *pgxpool.Pool) *PostgresAliasRepository {
 }
 
 func (r *PostgresAliasRepository) Create(ctx context.Context, alias *entities.CharacterAlias) (int, error) {
-	query := `INSERT INTO character_aliases (character_id, alias) VALUES ($1, $2, $3) RETURNING id`
+	query := `INSERT INTO character_aliases (character_id, alias) VALUES ($1, $2) RETURNING id;`
 
 	var id int
-	err := r.pool.QueryRow(ctx, query,
-		alias.CharacterID,
-		alias.Alias).Scan(&id)
-
+	err := r.pool.QueryRow(ctx, query, alias.CharacterID, alias.Alias).Scan(&id)
 	if err != nil {
-		return 0, fmt.Errorf("error creating character: %w", err)
+		return 0, fmt.Errorf("insert character alias: %w", err)
 	}
 
 	return id, nil
 }
 
 func (r *PostgresAliasRepository) ListByCharacterID(ctx context.Context, characterID int) ([]entities.CharacterAlias, error) {
-	query := `SELECT id, characterID, alias FROM characters WHERE character_id = $1 ORDER BY id ASC;`
+	query := `SELECT id, character_id, alias FROM character_aliases WHERE character_id = $1 ORDER BY id ASC;`
+
 	rows, err := r.pool.Query(ctx, query, characterID)
 	if err != nil {
-		return nil, fmt.Errorf("error listing characters: %w", err)
+		return nil, fmt.Errorf("list character aliases: %w", err)
 	}
-
 	defer rows.Close()
+
 	aliases := []entities.CharacterAlias{}
 	for rows.Next() {
-		alias := entities.CharacterAlias{}
-		err := rows.Scan(&alias.ID, &alias.CharacterID, &alias.Alias)
-		if err != nil {
-			return nil, fmt.Errorf("error listing characters: %w", err)
+		var alias entities.CharacterAlias
+		if err := rows.Scan(&alias.ID, &alias.CharacterID, &alias.Alias); err != nil {
+			return nil, fmt.Errorf("scan character alias: %w", err)
 		}
-
 		aliases = append(aliases, alias)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error listing characters: %w", err)
+		return nil, fmt.Errorf("rows error: %w", err)
 	}
 
 	return aliases, nil

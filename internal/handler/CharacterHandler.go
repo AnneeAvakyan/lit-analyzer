@@ -33,3 +33,23 @@ func (h *CharacterHandler) ListByBookID(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
+
+func (h *CharacterHandler) MergeCharacters(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		TargetID  int   `json:"targetId"`
+		SourceIDs []int `json:"sourceIds"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	if err := h.characterUsecase.MergeCharacters(r.Context(), req.TargetID, req.SourceIDs); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

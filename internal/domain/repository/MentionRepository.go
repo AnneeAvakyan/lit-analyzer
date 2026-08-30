@@ -9,5 +9,5 @@ import (
 type MentionRepository interface {
 	ListByBookID(ctx context.Context, bookID int) ([]entities.Mention, error)
 	CreateBatch(ctx context.Context, mentions []entities.Mention) error
-	Delete(ctx context.Context, id int) error
+	ReassignCharacter(ctx context.Context, oldCharacterID, newCharacterID int) error
 }

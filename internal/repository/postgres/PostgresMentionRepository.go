@@ -77,3 +77,14 @@ func (r *PostgresMentionRepository) ListByBookID(ctx context.Context, bookID int
 
 	return mentions, nil
 }
+
+func (r *PostgresMentionRepository) ReassignCharacter(ctx context.Context, oldCharacterID, newCharacterID int) error {
+	query := `UPDATE mentions SET character_id = $1 WHERE character_id = $2;`
+
+	_, err := r.pool.Exec(ctx, query, newCharacterID, oldCharacterID)
+	if err != nil {
+		return fmt.Errorf("reassign mentions: %w", err)
+	}
+
+	return nil
+}

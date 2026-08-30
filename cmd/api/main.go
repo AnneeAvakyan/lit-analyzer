@@ -40,14 +40,12 @@ func main() {
 
 	// пока просто чтобы использовать переменные и не ловить "unused variable"
 	_ = chapterRepo
-	_ = mentionRepo
-	_ = aliasRepo
 	_ = relationshipRepo
 
 	// usecases
 	bookUsecase := usecase.NewBookUsecase(bookRepo, "storage/books")
 	analyzeBookUsecase := usecase.NewAnalyzeBookUsecase(bookRepo, characterRepo)
-	characterUsecase := usecase.NewCharacterUsecase(characterRepo)
+	characterUsecase := usecase.NewCharacterUsecase(characterRepo, aliasRepo, mentionRepo)
 
 	// handlers
 	bookHandler := handler.NewBookHandler(bookUsecase)
@@ -64,6 +62,7 @@ func main() {
 	})
 
 	r.Get("/books/{id}", bookHandler.GetBookByID)
+
 	r.Get("/books/{bookID}/characters", characterHandler.ListByBookID)
 
 	r.Post("/books", bookHandler.CreateBook)
@@ -73,6 +72,8 @@ func main() {
 	r.Delete("/books/{id}", bookHandler.DeleteBook)
 
 	r.Post("/books/{bookID}/analyze", analyzeBookHandler.AnalyzeBook)
+
+	r.Post("/characters/merge", characterHandler.MergeCharacters)
 
 	log.Printf("starting server on :%s", cfg.HTTPPort)
 	if err := http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {
