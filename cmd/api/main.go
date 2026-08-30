@@ -47,10 +47,12 @@ func main() {
 	// usecases
 	bookUsecase := usecase.NewBookUsecase(bookRepo, "storage/books")
 	analyzeBookUsecase := usecase.NewAnalyzeBookUsecase(bookRepo, characterRepo)
+	characterUsecase := usecase.NewCharacterUsecase(characterRepo)
 
 	// handlers
 	bookHandler := handler.NewBookHandler(bookUsecase)
 	analyzeBookHandler := handler.NewAnalyzeBookHandler(analyzeBookUsecase)
+	characterHandler := handler.NewCharacterHandler(characterUsecase)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -62,6 +64,7 @@ func main() {
 	})
 
 	r.Get("/books/{id}", bookHandler.GetBookByID)
+	r.Get("/books/{bookID}/characters", characterHandler.ListByBookID)
 
 	r.Post("/books", bookHandler.CreateBook)
 
