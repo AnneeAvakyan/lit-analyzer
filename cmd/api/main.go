@@ -39,8 +39,6 @@ func main() {
 	relationshipRepo := postgres.NewPostgresRelationshipRepository(pool)
 
 	// пока просто чтобы использовать переменные и не ловить "unused variable"
-	_ = bookRepo
-	_ = characterRepo
 	_ = chapterRepo
 	_ = mentionRepo
 	_ = aliasRepo
@@ -48,9 +46,11 @@ func main() {
 
 	// usecases
 	bookUsecase := usecase.NewBookUsecase(bookRepo, "storage/books")
+	analyzeBookUsecase := usecase.NewAnalyzeBookUsecase(bookRepo, characterRepo)
 
 	// handlers
 	bookHandler := handler.NewBookHandler(bookUsecase)
+	analyzeBookHandler := handler.NewAnalyzeBookHandler(analyzeBookUsecase)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -66,6 +66,11 @@ func main() {
 	r.Post("/books", bookHandler.CreateBook)
 
 	r.Patch("/books/{id}", bookHandler.UpdateBook)
+
+	r.Delete("/books/{id}", bookHandler.DeleteBook)
+
+	r.Post("/books/{bookID}/analyze", analyzeBookHandler.AnalyzeBook)
+
 	log.Printf("starting server on :%s", cfg.HTTPPort)
 	if err := http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {
 		log.Fatalf("server failed: %v", err)
