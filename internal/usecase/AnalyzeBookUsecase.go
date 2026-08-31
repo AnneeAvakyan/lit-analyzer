@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/AnneeAvakyan/litanalyzer/internal/charextraction"
@@ -38,19 +37,19 @@ func (uc *AnalyzeBookUsecase) AnalyzeBook(ctx context.Context, bookID int) error
 	}
 
 	text := string(fileBytes)
-	log.Printf("DEBUG: text length = %d", len(text))
+	//log.Printf("DEBUG: text length = %d", len(text))
 
 	sentences := textproc.Segment(text)
-	log.Printf("DEBUG: sentences count = %d", len(sentences))
-	for i, s := range sentences {
-		log.Printf("DEBUG: sentence[%d] = %q", i, s)
-	}
+	//log.Printf("DEBUG: sentences count = %d", len(sentences))
+	//for i, s := range sentences {
+	//	log.Printf("DEBUG: sentence[%d] = %q", i, s)
+	//}
 
 	candidates := charextraction.ExtractCandidatesWithFrequency(sentences)
-	log.Printf("DEBUG: candidates = %v", candidates)
+	//log.Printf("DEBUG: candidates = %v", candidates)
 
 	filtered := charextraction.FilterByFrequency(candidates, minCharacterFrequency)
-	log.Printf("DEBUG: filtered = %v", filtered)
+	//log.Printf("DEBUG: filtered = %v", filtered)
 
 	for name := range filtered {
 		character := &entities.Character{

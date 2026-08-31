@@ -2,10 +2,12 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/AnneeAvakyan/litanalyzer/internal/domain/entities"
 	"github.com/AnneeAvakyan/litanalyzer/internal/domain/repository"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -27,6 +29,21 @@ func (r *PostgresCharacterRepository) Create(ctx context.Context, character *ent
 	}
 
 	return id, nil
+}
+
+func (r *PostgresCharacterRepository) GetByID(ctx context.Context, id int) (*entities.Character, error) {
+	query := `SELECT id, book_id, canonical_name FROM characters WHERE id = $1;`
+
+	var character entities.Character
+	err := r.pool.QueryRow(ctx, query, id).Scan(&character.ID, &character.BookID, &character.CanonicalName)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrNotFound
+		}
+		return nil, fmt.Errorf("get character: %w", err)
+	}
+
+	return &character, nil
 }
 
 func (r *PostgresCharacterRepository) ListByBookID(ctx context.Context, id int) ([]entities.Character, error) {

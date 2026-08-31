@@ -5,16 +5,23 @@ import (
 	"log"
 	"net/http"
 
+	_ "github.com/AnneeAvakyan/litanalyzer/docs"
 	"github.com/AnneeAvakyan/litanalyzer/internal/handler"
 	"github.com/AnneeAvakyan/litanalyzer/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/AnneeAvakyan/litanalyzer/internal/config"
 	"github.com/AnneeAvakyan/litanalyzer/internal/repository/postgres"
 )
 
+// @title Lit Analyzer API
+// @version 1.0
+// @description API для анализа литературных произведений: извлечение персонажей и связей между ними
+// @host localhost:8080
+// @BasePath /
 func main() {
 	cfg := config.Load()
 
@@ -40,21 +47,23 @@ func main() {
 
 	// пока просто чтобы использовать переменные и не ловить "unused variable"
 	_ = chapterRepo
-	_ = mentionRepo
-	_ = aliasRepo
 	_ = relationshipRepo
 
 	// usecases
 	bookUsecase := usecase.NewBookUsecase(bookRepo, "storage/books")
 	analyzeBookUsecase := usecase.NewAnalyzeBookUsecase(bookRepo, characterRepo)
+	characterUsecase := usecase.NewCharacterUsecase(characterRepo, aliasRepo, mentionRepo)
 
 	// handlers
 	bookHandler := handler.NewBookHandler(bookUsecase)
 	analyzeBookHandler := handler.NewAnalyzeBookHandler(analyzeBookUsecase)
+	characterHandler := handler.NewCharacterHandler(characterUsecase)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -63,6 +72,8 @@ func main() {
 
 	r.Get("/books/{id}", bookHandler.GetBookByID)
 
+	r.Get("/books/{bookID}/characters", characterHandler.ListByBookID)
+
 	r.Post("/books", bookHandler.CreateBook)
 
 	r.Patch("/books/{id}", bookHandler.UpdateBook)
@@ -70,6 +81,8 @@ func main() {
 	r.Delete("/books/{id}", bookHandler.DeleteBook)
 
 	r.Post("/books/{bookID}/analyze", analyzeBookHandler.AnalyzeBook)
+
+	r.Post("/characters/merge", characterHandler.MergeCharacters)
 
 	log.Printf("starting server on :%s", cfg.HTTPPort)
 	if err := http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {
