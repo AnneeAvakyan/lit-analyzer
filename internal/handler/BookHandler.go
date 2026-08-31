@@ -12,6 +12,10 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type UpdateBookStatusRequest struct {
+	Status string `json:"status"`
+}
+
 type BookHandler struct {
 	bookUsecase *usecase.BookUsecase
 }
@@ -20,6 +24,18 @@ func NewBookHandler(bookUsecase *usecase.BookUsecase) *BookHandler {
 	return &BookHandler{bookUsecase: bookUsecase}
 }
 
+// CreateBook godoc
+// @Summary Create a new book
+// @Description Upload a book file for analysis
+// @Tags books
+// @Accept multipart/form-data
+// @Produce json
+// @Param title formData string true "Book title"
+// @Param author formData string false "Book author"
+// @Param file formData file true "Book text file"
+// @Success 201 {object} entities.Book
+// @Failure 400 {string} string "bad request"
+// @Router /books [post]
 func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	// ограничиваем размер тела запроса, чтобы не словить OOM на гигантском файле
 	r.Body = http.MaxBytesReader(w, r.Body, 20<<20) // 20 MB
@@ -50,6 +66,17 @@ func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
+// GetBookByID godoc
+// @Summary Get book by ID
+// @Description Returns a book by given ID
+// @Tags books
+// @Produce json
+// @Param id path int true "Book ID"
+// @Success 200 {object} entities.Book
+// @Failure 400 {string} string "invalid id"
+// @Failure 404 {string} string "book not found"
+// @Failure 500 {string} string "internal server error"
+// @Router /books/{id} [get]
 func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
@@ -70,6 +97,18 @@ func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
+// UpdateBook godoc
+// @Summary Update book by ID
+// @Description Update a book by given ID
+// @Tags books
+// @Accept json
+// @Produce json
+// @Param request body UpdateBookStatusRequest true "New status"
+// @Param id path int true "Book ID"
+// @Success 200
+// @Failure 400 {string} string "invalid id"
+// @Failure 500 {string} string "internal server error"
+// @Router /books/{id} [patch]
 func (h *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
@@ -78,11 +117,7 @@ func (h *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type updateStatusRequest struct {
-		Status string `json:"status"`
-	}
-
-	var req updateStatusRequest
+	var req UpdateBookStatusRequest
 
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -100,6 +135,16 @@ func (h *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updatedBook)
 }
 
+// DeleteBook godoc
+// @Summary Delete book by ID
+// @Description Deletes a book by given ID
+// @Tags books
+// @Param id path int true "Book ID"
+// @Success 204
+// @Failure 400 {string} string "invalid id"
+// @Failure 404 {string} string "book not found"
+// @Failure 500 {string} string "internal server error"
+// @Router /books/{id} [delete]
 func (h *BookHandler) DeleteBook(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)

@@ -18,6 +18,16 @@ func NewAnalyzeBookHandler(uc *usecase.AnalyzeBookUsecase) *AnalyzeBookHandler {
 	return &AnalyzeBookHandler{uc: uc}
 }
 
+// AnalyzeBook godoc
+// @Summary Analyze book
+// @Description Extracts characters from book and filters them
+// @Tags books
+// @Param bookID path int true "Book ID"
+// @Success 200
+// @Failure 400 {string} string "bad request"
+// @Failure 404 {string} string "not found"
+// @Failure 500 {string} string "internal server error"
+// @Router /books/{bookID}/analyze [post]
 func (h *AnalyzeBookHandler) AnalyzeBook(w http.ResponseWriter, r *http.Request) {
 	bookID, err := strconv.Atoi(chi.URLParam(r, "bookID"))
 	if err != nil {

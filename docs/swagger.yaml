@@ -1,0 +1,257 @@
+basePath: /
+definitions:
+  entities.Book:
+    properties:
+      author:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      rawTextPath:
+        type: string
+      size:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  entities.Character:
+    properties:
+      book_id:
+        type: integer
+      canonicalName:
+        type: string
+      id:
+        type: integer
+    type: object
+  handler.MergeCharactersRequest:
+    properties:
+      sourceIds:
+        items:
+          type: integer
+        type: array
+      targetId:
+        type: integer
+    type: object
+  handler.UpdateBookStatusRequest:
+    properties:
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 'API для анализа литературных произведений: извлечение персонажей и
+    связей между ними'
+  title: Lit Analyzer API
+  version: "1.0"
+paths:
+  /books:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a book file for analysis
+      parameters:
+      - description: Book title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Book author
+        in: formData
+        name: author
+        type: string
+      - description: Book text file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entities.Book'
+        "400":
+          description: bad request
+          schema:
+            type: string
+      summary: Create a new book
+      tags:
+      - books
+  /books/{bookID}/analyze:
+    post:
+      description: Extracts characters from book and filters them
+      parameters:
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Analyze book
+      tags:
+      - books
+  /books/{bookID}/characters:
+    get:
+      description: Returns a characters list by given book ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.Character'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Get characters list by book ID
+      tags:
+      - characters
+  /books/{id}:
+    delete:
+      description: Deletes a book by given ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "404":
+          description: book not found
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Delete book by ID
+      tags:
+      - books
+    get:
+      description: Returns a book by given ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.Book'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "404":
+          description: book not found
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Get book by ID
+      tags:
+      - books
+    patch:
+      consumes:
+      - application/json
+      description: Update a book by given ID
+      parameters:
+      - description: New status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateBookStatusRequest'
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Update book by ID
+      tags:
+      - books
+  /characters/merge:
+    post:
+      consumes:
+      - application/json
+      description: Merges source characters into a target character, preserving their
+        names as aliases and reassigning their mentions
+      parameters:
+      - description: Target and source character IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.MergeCharactersRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: invalid request body
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Merge duplicate characters
+      tags:
+      - characters
+swagger: "2.0"
