@@ -1,0 +1,2 @@
+ALTER TABLE mentions
+ADD COLUMN position INTEGER NOT NULL;
