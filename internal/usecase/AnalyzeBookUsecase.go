@@ -13,15 +13,25 @@ import (
 
 const minCharacterFrequency int = 1
 
+type occurrence struct {
+	ChapterID     int
+	SentenceIndex int
+}
+
 type AnalyzeBookUsecase struct {
 	bookRepo      repository.BookRepository
 	characterRepo repository.CharacterRepository
+	chapterRepo   repository.ChapterRepository
+	mentionRepo   repository.MentionRepository
 }
 
-func NewAnalyzeBookUsecase(bookRepo repository.BookRepository, characterRepo repository.CharacterRepository) *AnalyzeBookUsecase {
+func NewAnalyzeBookUsecase(bookRepo repository.BookRepository, characterRepo repository.CharacterRepository,
+	chapterRepo repository.ChapterRepository, mentionRepo repository.MentionRepository) *AnalyzeBookUsecase {
 	return &AnalyzeBookUsecase{
 		bookRepo:      bookRepo,
 		characterRepo: characterRepo,
+		chapterRepo:   chapterRepo,
+		mentionRepo:   mentionRepo,
 	}
 }
 
@@ -37,29 +47,68 @@ func (uc *AnalyzeBookUsecase) AnalyzeBook(ctx context.Context, bookID int) error
 	}
 
 	text := string(fileBytes)
-	//log.Printf("DEBUG: text length = %d", len(text))
 
-	sentences := textproc.Segment(text)
-	//log.Printf("DEBUG: sentences count = %d", len(sentences))
-	//for i, s := range sentences {
-	//	log.Printf("DEBUG: sentence[%d] = %q", i, s)
-	//}
+	chapters := textproc.SplitIntoChapters(text)
+	chapterEntities := []entities.Chapter{}
 
-	candidates := charextraction.ExtractCandidatesWithFrequency(sentences)
-	//log.Printf("DEBUG: candidates = %v", candidates)
+	for i := range chapters {
+		chapter := entities.Chapter{
+			BookID: bookID,
+			Index:  i + 1,
+			Text:   chapters[i],
+		}
+		chapterEntities = append(chapterEntities, chapter)
+	}
+	ids, err := uc.chapterRepo.CreateBatch(ctx, chapterEntities)
+	if err != nil {
+		return fmt.Errorf("create chapter: %w", err)
+	}
 
-	filtered := charextraction.FilterByFrequency(candidates, minCharacterFrequency)
-	//log.Printf("DEBUG: filtered = %v", filtered)
+	allOccurrences := make(map[string][]occurrence)
 
-	for name := range filtered {
+	for i, chapterText := range chapters {
+		chapterID := ids[i]
+
+		sentences := textproc.Segment(chapterText)
+		candidatesInChapter := charextraction.ExtractCandidatesOccurrences(sentences)
+
+		for candidate, sentenceNumbers := range candidatesInChapter {
+			for _, sentenceIndex := range sentenceNumbers {
+				occ := occurrence{
+					ChapterID:     chapterID,
+					SentenceIndex: sentenceIndex,
+				}
+				allOccurrences[candidate] = append(allOccurrences[candidate], occ)
+			}
+		}
+	}
+
+	mentions := []entities.Mention{}
+	for candidate, occurrences := range allOccurrences {
+		if len(occurrences) < minCharacterFrequency {
+			continue
+		}
 		character := &entities.Character{
 			BookID:        bookID,
-			CanonicalName: name,
+			CanonicalName: candidate,
+		}
+		id, err := uc.characterRepo.Create(ctx, character)
+		if err != nil {
+			return fmt.Errorf("create character %q: %w", candidate, err)
 		}
 
-		if _, err := uc.characterRepo.Create(ctx, character); err != nil {
-			return fmt.Errorf("create character %q: %w", name, err)
+		for _, newOccurrence := range occurrences {
+			mention := entities.Mention{
+				CharacterID:   id,
+				ChapterID:     newOccurrence.ChapterID,
+				Position:      0, // мы не брали позицию, мб уберу это вообще
+				SentenceIndex: newOccurrence.SentenceIndex,
+			}
+			mentions = append(mentions, mention)
 		}
+	}
+	if err := uc.mentionRepo.CreateBatch(ctx, mentions); err != nil {
+		return fmt.Errorf("create mentions: %w", err)
 	}
 
 	book.Status = entities.BookStatusDone

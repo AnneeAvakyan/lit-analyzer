@@ -5,37 +5,37 @@ import (
 	"testing"
 )
 
-func TestExtractCandidatesWithFrequency(t *testing.T) {
+func TestExtractCandidatesOccurrences(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    []string
-		expected map[string]int
+		expected map[string][]int
 	}{
 		{
 			name:  "two sentences, freq = one & two",
 			input: []string{"Юная Наташа полюбила Андрея.", "Князя Андрея это мало заботило."},
-			expected: map[string]int{
-				"Наташа": 1,
-				"Андрея": 2,
+			expected: map[string][]int{
+				"Наташа": {0},
+				"Андрея": {0, 1},
 			},
 		},
 		{
 			name:  "two sentences, freq = one & one",
 			input: []string{"Юная Наташа полюбила Андрея.", "Он отвечал ей взаимностью."},
-			expected: map[string]int{
-				"Наташа": 1,
-				"Андрея": 1,
+			expected: map[string][]int{
+				"Наташа": {0},
+				"Андрея": {0},
 			},
 		},
 		{
 			name:     "two sentences, no names",
 			input:    []string{"Она полюбила его.", "Полюбила на всю жизнь."},
-			expected: map[string]int{},
+			expected: map[string][]int{},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := ExtractCandidatesWithFrequency(test.input)
+			actual := ExtractCandidatesOccurrences(test.input)
 			if !reflect.DeepEqual(actual, test.expected) {
 				t.Errorf("Expected: %v, Actual: %v", test.expected, actual)
 			}
@@ -46,31 +46,31 @@ func TestExtractCandidatesWithFrequency(t *testing.T) {
 func TestFilterByFrequency(t *testing.T) {
 	tests := []struct {
 		name     string
-		freq     map[string]int
+		freq     map[string][]int
 		minCount int
-		expected map[string]int
+		expected map[string][]int
 	}{
 		{
 			name: "remove less than 2",
-			freq: map[string]int{
-				"Наташа": 2,
-				"Андрей": 1,
+			freq: map[string][]int{
+				"Наташа": {1, 2},
+				"Андрей": {1},
 			},
 			minCount: 2,
-			expected: map[string]int{
-				"Наташа": 2,
+			expected: map[string][]int{
+				"Наташа": {1, 2},
 			},
 		},
 		{
 			name: "no remove",
-			freq: map[string]int{
-				"Наташа": 2,
-				"Андрей": 1,
+			freq: map[string][]int{
+				"Наташа": {2},
+				"Андрей": {1},
 			},
 			minCount: 1,
-			expected: map[string]int{
-				"Наташа": 2,
-				"Андрей": 1,
+			expected: map[string][]int{
+				"Наташа": {2},
+				"Андрей": {1},
 			},
 		},
 	}

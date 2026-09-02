@@ -46,12 +46,11 @@ func main() {
 	relationshipRepo := postgres.NewPostgresRelationshipRepository(pool)
 
 	// пока просто чтобы использовать переменные и не ловить "unused variable"
-	_ = chapterRepo
 	_ = relationshipRepo
 
 	// usecases
 	bookUsecase := usecase.NewBookUsecase(bookRepo, "storage/books")
-	analyzeBookUsecase := usecase.NewAnalyzeBookUsecase(bookRepo, characterRepo)
+	analyzeBookUsecase := usecase.NewAnalyzeBookUsecase(bookRepo, characterRepo, chapterRepo, mentionRepo)
 	characterUsecase := usecase.NewCharacterUsecase(characterRepo, aliasRepo, mentionRepo)
 
 	// handlers
