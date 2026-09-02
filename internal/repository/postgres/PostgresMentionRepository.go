@@ -29,12 +29,12 @@ func (r *PostgresMentionRepository) CreateBatch(ctx context.Context, mentions []
 	argIdx := 1
 	for _, m := range mentions {
 		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d)", argIdx, argIdx+1, argIdx+2, argIdx+3))
-		args = append(args, m.CharacterID, m.ChapterID, m.Position, m.SentenceIndex)
+		args = append(args, m.CharacterID, m.ChapterID, m.GlobalSentenceIndex, m.SentenceIndex)
 		argIdx += 4
 	}
 
 	query := fmt.Sprintf(
-		"INSERT INTO mentions (character_id, chapter_id, position, sentence_index) VALUES %s",
+		"INSERT INTO mentions (character_id, chapter_id, global_sentence_index, sentence_index) VALUES %s",
 		strings.Join(valueStrings, ", "),
 	)
 
@@ -65,7 +65,7 @@ func (r *PostgresMentionRepository) ListByBookID(ctx context.Context, bookID int
 	var mentions []entities.Mention
 	for rows.Next() {
 		var m entities.Mention
-		if err := rows.Scan(&m.ID, &m.CharacterID, &m.ChapterID, &m.Position, &m.SentenceIndex); err != nil {
+		if err := rows.Scan(&m.ID, &m.CharacterID, &m.ChapterID, &m.GlobalSentenceIndex, &m.SentenceIndex); err != nil {
 			return nil, fmt.Errorf("scan mention: %w", err)
 		}
 		mentions = append(mentions, m)

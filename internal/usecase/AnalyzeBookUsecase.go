@@ -14,8 +14,9 @@ import (
 const minCharacterFrequency int = 1
 
 type occurrence struct {
-	ChapterID     int
-	SentenceIndex int
+	ChapterID           int
+	SentenceIndex       int
+	GlobalSentenceIndex int
 }
 
 type AnalyzeBookUsecase struct {
@@ -66,6 +67,7 @@ func (uc *AnalyzeBookUsecase) AnalyzeBook(ctx context.Context, bookID int) error
 
 	allOccurrences := make(map[string][]occurrence)
 
+	globalOffset := 0
 	for i, chapterText := range chapters {
 		chapterID := ids[i]
 
@@ -75,12 +77,14 @@ func (uc *AnalyzeBookUsecase) AnalyzeBook(ctx context.Context, bookID int) error
 		for candidate, sentenceNumbers := range candidatesInChapter {
 			for _, sentenceIndex := range sentenceNumbers {
 				occ := occurrence{
-					ChapterID:     chapterID,
-					SentenceIndex: sentenceIndex,
+					ChapterID:           chapterID,
+					SentenceIndex:       sentenceIndex,
+					GlobalSentenceIndex: globalOffset + sentenceIndex,
 				}
 				allOccurrences[candidate] = append(allOccurrences[candidate], occ)
 			}
 		}
+		globalOffset += len(sentences)
 	}
 
 	mentions := []entities.Mention{}
@@ -99,10 +103,10 @@ func (uc *AnalyzeBookUsecase) AnalyzeBook(ctx context.Context, bookID int) error
 
 		for _, newOccurrence := range occurrences {
 			mention := entities.Mention{
-				CharacterID:   id,
-				ChapterID:     newOccurrence.ChapterID,
-				Position:      0, // мы не брали позицию, мб уберу это вообще
-				SentenceIndex: newOccurrence.SentenceIndex,
+				CharacterID:         id,
+				ChapterID:           newOccurrence.ChapterID,
+				GlobalSentenceIndex: newOccurrence.GlobalSentenceIndex,
+				SentenceIndex:       newOccurrence.SentenceIndex,
 			}
 			mentions = append(mentions, mention)
 		}
