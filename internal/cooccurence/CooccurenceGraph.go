@@ -1,6 +1,7 @@
 package cooccurence
 
 import (
+	"math"
 	"sort"
 
 	"github.com/AnneeAvakyan/litanalyzer/internal/domain/entities"
@@ -10,6 +11,8 @@ type EdgeWeight map[[2]int]int
 
 func BuildGraph(mentions []entities.Mention, windowSize int) EdgeWeight {
 	weight := make(EdgeWeight)
+	floatWeight := make(map[[2]int]float64)
+
 	sort.Slice(mentions, func(i, j int) bool {
 		return mentions[i].GlobalSentenceIndex < mentions[j].GlobalSentenceIndex
 	})
@@ -19,14 +22,19 @@ func BuildGraph(mentions []entities.Mention, windowSize int) EdgeWeight {
 			if mentions[j].GlobalSentenceIndex-mentions[i].GlobalSentenceIndex > windowSize {
 				break
 			}
-			
+
 			if mentions[i].CharacterID == mentions[j].CharacterID {
 				continue
 			}
 
 			key := edgeKey(mentions[i].CharacterID, mentions[j].CharacterID)
-			weight[key]++
+			distance := mentions[j].GlobalSentenceIndex - mentions[i].GlobalSentenceIndex
+			floatWeight[key] += 1.0 / float64(distance+1)
 		}
+	}
+
+	for k, v := range floatWeight {
+		weight[k] += int(math.Round(v))
 	}
 
 	return weight
