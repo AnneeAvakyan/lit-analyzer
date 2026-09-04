@@ -121,3 +121,13 @@ func (r *PostgresRelationshipRepository) GetByCharacterID(ctx context.Context, c
 
 	return relationships, nil
 }
+
+func (r *PostgresRelationshipRepository) DeleteByBookID(ctx context.Context, bookID int) error {
+	query := `DELETE FROM relationships WHERE book_id = $1;`
+	_, err := r.pool.Exec(ctx, query, bookID)
+	if err != nil {
+		return fmt.Errorf("delete relationship: %w", err)
+	}
+
+	return nil
+}

@@ -49,7 +49,7 @@ func (r *PostgresMentionRepository) CreateBatch(ctx context.Context, mentions []
 func (r *PostgresMentionRepository) ListByBookID(ctx context.Context, bookID int) ([]entities.Mention, error) {
 	// mentions не хранит book_id напрямую — join через chapters
 	query := `
-		SELECT m.id, m.character_id, m.chapter_id, m.position, m.sentence_index
+		SELECT m.id, m.character_id, m.chapter_id, m.global_sentence_index, m.sentence_index
 		FROM mentions m
 		JOIN chapters c ON c.id = m.chapter_id
 		WHERE c.book_id = $1

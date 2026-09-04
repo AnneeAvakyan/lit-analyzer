@@ -151,6 +151,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/books/{bookID}/graph": {
+            "post": {
+                "description": "Creates edges of co-occurrences graph by bookID and size of window",
+                "tags": [
+                    "books"
+                ],
+                "summary": "Build graph",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Book ID",
+                        "name": "bookID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Window size in sentences (default: 5)",
+                        "name": "windowSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/books/{id}": {
             "get": {
                 "description": "Returns a book by given ID",
@@ -272,6 +313,44 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "invalid id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{id}/graph": {
+            "get": {
+                "description": "Returns a graph of co-occurrences by given bookID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Get graph by book ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Book ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "bad request",
                         "schema": {
                             "type": "string"
                         }

@@ -45,18 +45,17 @@ func main() {
 	aliasRepo := postgres.NewPostgresAliasRepository(pool)
 	relationshipRepo := postgres.NewPostgresRelationshipRepository(pool)
 
-	// пока просто чтобы использовать переменные и не ловить "unused variable"
-	_ = relationshipRepo
-
 	// usecases
 	bookUsecase := usecase.NewBookUsecase(bookRepo, "storage/books")
 	analyzeBookUsecase := usecase.NewAnalyzeBookUsecase(bookRepo, characterRepo, chapterRepo, mentionRepo)
 	characterUsecase := usecase.NewCharacterUsecase(characterRepo, aliasRepo, mentionRepo)
+	graphUsecase := usecase.NewGraphUsecase(mentionRepo, relationshipRepo, characterRepo)
 
 	// handlers
 	bookHandler := handler.NewBookHandler(bookUsecase)
 	analyzeBookHandler := handler.NewAnalyzeBookHandler(analyzeBookUsecase)
 	characterHandler := handler.NewCharacterHandler(characterUsecase)
+	graphHandler := handler.NewGraphHandler(graphUsecase)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -80,6 +79,10 @@ func main() {
 	r.Delete("/books/{id}", bookHandler.DeleteBook)
 
 	r.Post("/books/{bookID}/analyze", analyzeBookHandler.AnalyzeBook)
+
+	r.Post("/books/{bookID}/graph", graphHandler.BuildGraph)
+
+	r.Get("/books/{bookID}/graph", graphHandler.GetGraph)
 
 	r.Post("/characters/merge", characterHandler.MergeCharacters)
 

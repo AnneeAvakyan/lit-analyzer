@@ -138,6 +138,33 @@ paths:
       summary: Get characters list by book ID
       tags:
       - characters
+  /books/{bookID}/graph:
+    post:
+      description: Creates edges of co-occurrences graph by bookID and size of window
+      parameters:
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
+      - description: 'Window size in sentences (default: 5)'
+        in: query
+        name: windowSize
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Build graph
+      tags:
+      - books
   /books/{id}:
     delete:
       description: Deletes a book by given ID
@@ -225,6 +252,31 @@ paths:
           schema:
             type: string
       summary: Update book by ID
+      tags:
+      - books
+  /books/{id}/graph:
+    get:
+      description: Returns a graph of co-occurrences by given bookID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Get graph by book ID
       tags:
       - books
   /characters/merge:
