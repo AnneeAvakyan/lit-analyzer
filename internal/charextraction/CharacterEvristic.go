@@ -30,24 +30,21 @@ func isStopWord(word string) bool {
 	return stopWords[strings.ToLower(word)]
 }
 
-// не учитывает падежи русского языка . Планируется объединение через
-// ручное слияние алиасов (POST /characters/merge) на более позднем этапе.
-func ExtractCandidatesWithFrequency(sentences []string) map[string]int {
-	freq := make(map[string]int)
-
-	for _, sentence := range sentences {
+func ExtractCandidatesOccurrences(sentences []string) map[string][]int {
+	occurrences := make(map[string][]int)
+	for i, sentence := range sentences {
 		candidates := extractCandidatesFromSentence(sentence)
 		for _, candidate := range candidates {
-			freq[candidate]++
+			occurrences[candidate] = append(occurrences[candidate], i)
 		}
 	}
-	return freq
+	return occurrences
 }
 
-func FilterByFrequency(freq map[string]int, minCount int) map[string]int {
-	result := make(map[string]int)
+func FilterByFrequency(freq map[string][]int, minCount int) map[string][]int {
+	result := make(map[string][]int)
 	for key, value := range freq {
-		if value >= minCount {
+		if len(value) >= minCount {
 			result[key] = value
 		}
 	}
