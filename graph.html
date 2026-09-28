@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Граф персонажей</title>
+    <script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+    <style>
+        body { margin: 0; font-family: sans-serif; }
+        #cy { width: 100vw; height: 100vh; }
+        #controls { position: absolute; top: 10px; left: 10px; z-index: 10; background: white; padding: 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div id="controls">
+    <label>Book ID: <input type="number" id="bookId" value="11"></label>
+    <button onclick="loadGraph()">Загрузить</button>
+</div>
+<div id="cy"></div>
+
+<script>
+    let cy;
+
+    async function loadGraph() {
+        const bookId = document.getElementById('bookId').value;
+        const response = await fetch(`http://localhost:8080/books/${bookId}/graph`);
+        const data = await response.json();
+
+        const elements = [
+            ...data.nodes.map(n => ({ data: { id: String(n.id), label: n.name } })),
+            ...data.edges.map(e => ({ data: { source: String(e.source), target: String(e.target), weight: e.weight } }))
+        ];
+
+        if (cy) {
+            cy.destroy();
+        }
+
+        cy = cytoscape({
+            container: document.getElementById('cy'),
+            elements: elements,
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'label': 'data(label)',
+                        'text-valign': 'center',
+                        'background-color': '#6699cc',
+                        'color': '#fff',
+                        'font-size': '12px',
+                        'width': 'label',
+                        'height': 'label',
+                        'padding': '10px',
+                        'shape': 'ellipse'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 'mapData(weight, 0, 5, 1, 8)',
+                        'line-color': '#ccc',
+                        'curve-style': 'bezier',
+                        'label': 'data(weight)',
+                        'font-size': '10px'
+                    }
+                }
+            ],
+            layout: {
+                name: 'cose',
+                animate: true
+            }
+        });
+    }
+
+    loadGraph();
+</script>
+</body>
+</html>
